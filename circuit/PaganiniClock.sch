@@ -7126,8 +7126,8 @@ Solder type</description>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="R2" library="rcl" deviceset="R-EU_" device="0204/7L" value="2k2"/>
 <part name="R4" library="rcl" deviceset="R-EU_" device="0204/7L" value="3k3"/>
-<part name="S1" library="switch-omron" deviceset="10-XX" device=""/>
 <part name="S2" library="switch-omron" deviceset="10-XX" device=""/>
+<part name="S1" library="switch-omron" deviceset="10-XX" device=""/>
 <part name="P+4" library="supply1" deviceset="+5V" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
@@ -7180,16 +7180,16 @@ Solder type</description>
 <attribute name="NAME" x="38.354" y="60.7314" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="37.592" y="58.166" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="S1" gate="1" x="60.96" y="45.72" smashed="yes" rot="R180">
+<instance part="S2" gate="1" x="60.96" y="45.72" smashed="yes" rot="R180">
 <attribute name="NAME" x="63.5" y="49.53" size="1.778" layer="95"/>
 <attribute name="VALUE" x="64.77" y="42.545" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="S2" gate="1" x="40.64" y="45.72" smashed="yes" rot="R180">
-<attribute name="NAME" x="43.18" y="49.53" size="1.778" layer="95"/>
-<attribute name="VALUE" x="44.45" y="42.545" size="1.778" layer="96" rot="R270"/>
+<instance part="S1" gate="1" x="43.18" y="45.72" smashed="yes" rot="R180">
+<attribute name="NAME" x="45.72" y="49.53" size="1.778" layer="95"/>
+<attribute name="VALUE" x="46.99" y="42.545" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="P+4" gate="1" x="40.64" y="83.82"/>
-<instance part="GND5" gate="1" x="40.64" y="33.02"/>
+<instance part="GND5" gate="1" x="43.18" y="33.02"/>
 <instance part="GND6" gate="1" x="60.96" y="33.02"/>
 <instance part="P+6" gate="1" x="248.92" y="152.4" rot="R270"/>
 <instance part="C1" gate="G$1" x="213.36" y="73.66"/>
@@ -7316,19 +7316,19 @@ Solder type</description>
 </segment>
 <segment>
 <pinref part="GND5" gate="1" pin="GND"/>
-<pinref part="S2" gate="1" pin="S"/>
+<pinref part="S1" gate="1" pin="S"/>
+<wire x1="43.18" y1="40.64" x2="43.18" y2="38.1" width="0.1524" layer="91"/>
+<pinref part="S1" gate="1" pin="S1"/>
+<wire x1="43.18" y1="38.1" x2="43.18" y2="35.56" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="40.64" x2="40.64" y2="38.1" width="0.1524" layer="91"/>
-<pinref part="S2" gate="1" pin="S1"/>
-<wire x1="40.64" y1="38.1" x2="40.64" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="38.1" y1="40.64" x2="38.1" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="38.1" y1="38.1" x2="40.64" y2="38.1" width="0.1524" layer="91"/>
-<junction x="40.64" y="38.1"/>
+<wire x1="40.64" y1="38.1" x2="43.18" y2="38.1" width="0.1524" layer="91"/>
+<junction x="43.18" y="38.1"/>
 </segment>
 <segment>
-<pinref part="S1" gate="1" pin="S"/>
+<pinref part="S2" gate="1" pin="S"/>
 <pinref part="GND6" gate="1" pin="GND"/>
 <wire x1="60.96" y1="40.64" x2="60.96" y2="38.1" width="0.1524" layer="91"/>
-<pinref part="S1" gate="1" pin="S1"/>
+<pinref part="S2" gate="1" pin="S1"/>
 <wire x1="60.96" y1="38.1" x2="60.96" y2="35.56" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="40.64" x2="58.42" y2="38.1" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="38.1" x2="60.96" y2="38.1" width="0.1524" layer="91"/>
@@ -7343,7 +7343,7 @@ Solder type</description>
 </net>
 <net name="SER-OUT" class="0">
 <segment>
-<label x="96.52" y="99.06" size="1.27" layer="95"/>
+<label x="78.74" y="99.06" size="1.778" layer="95"/>
 <wire x1="144.78" y1="99.06" x2="144.78" y2="116.84" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="A" pin="QS"/>
 <wire x1="139.7" y1="116.84" x2="144.78" y2="116.84" width="0.1524" layer="91"/>
@@ -7397,7 +7397,7 @@ Solder type</description>
 <net name="N$20" class="0">
 <segment>
 <pinref part="R4" gate="G$1" pin="1"/>
-<pinref part="S2" gate="1" pin="P"/>
+<pinref part="S1" gate="1" pin="P1"/>
 <wire x1="40.64" y1="53.34" x2="40.64" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -7620,7 +7620,7 @@ Solder type</description>
 <wire x1="104.14" y1="106.68" x2="50.8" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="106.68" x2="50.8" y2="134.62" width="0.1524" layer="91"/>
 <junction x="50.8" y="134.62"/>
-<label x="63.5" y="106.68" size="1.778" layer="95"/>
+<label x="78.74" y="106.68" size="1.778" layer="95"/>
 <pinref part="IC2" gate="A" pin="CLK"/>
 <pinref part="IC1" gate="A" pin="CLK"/>
 </segment>
@@ -7637,7 +7637,6 @@ Solder type</description>
 <wire x1="106.68" y1="162.56" x2="106.68" y2="152.4" width="0.1524" layer="91"/>
 <wire x1="106.68" y1="152.4" x2="106.68" y2="139.7" width="0.1524" layer="91"/>
 <wire x1="106.68" y1="139.7" x2="111.76" y2="139.7" width="0.1524" layer="91"/>
-<label x="63.5" y="104.14" size="1.778" layer="95"/>
 <pinref part="IC1" gate="A" pin="STR"/>
 <wire x1="58.42" y1="139.7" x2="48.26" y2="139.7" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="A" pin="STR"/>
@@ -7662,9 +7661,9 @@ Solder type</description>
 <net name="N$18" class="0">
 <segment>
 <pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="55.88" y1="66.04" x2="58.42" y2="66.04" width="0.1524" layer="91"/>
-<pinref part="S1" gate="1" pin="P1"/>
-<wire x1="58.42" y1="50.8" x2="58.42" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="66.04" x2="60.96" y2="66.04" width="0.1524" layer="91"/>
+<pinref part="S2" gate="1" pin="P"/>
+<wire x1="60.96" y1="50.8" x2="60.96" y2="66.04" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$1" class="0">
@@ -7687,7 +7686,6 @@ Solder type</description>
 <approved hash="104,1,220.98,66.04,IC2P,VSS,GND,,,"/>
 <approved hash="104,1,220.98,81.28,IC2P,VDD,+5V,,,"/>
 <approved hash="113,1,61.8741,45.72,S1,,,,,"/>
-<approved hash="113,1,44.0941,45.72,S2,,,,,"/>
 <approved hash="113,1,130.071,89.431,FRAME1,,,,,"/>
 <approved hash="113,1,99.0177,35.7547,K1,,,,,"/>
 </errors>
