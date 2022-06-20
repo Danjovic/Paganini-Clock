@@ -273,8 +273,11 @@ t_buttonStates getButton (void);
 t_buttonEvents buttonEvents (void);
 
 
-bool  readRtc    ( t_ds3231records *t);
-bool writeRtc    ( t_ds3231records *t);
+bool  readRtc     ( t_ds3231records *t );
+bool writeRtc     ( t_ds3231records *t );
+void adjustDOW    ( t_ds3231records *t );
+bool rtcDataCheck ( t_ds3231records *t );
+
 
 void I2Cstart( void );
 void I2Cstop( void );
@@ -282,16 +285,9 @@ bool I2Cwrite(uint8_t d);
 uint8_t I2Cread( bool nack);
 
 
-uint16_t dotyFebruary1( uint8_t month, uint8_t day);
-
-void runClockEngine( t_buttonEvents btEvent );
-void runDisplayEngine( void );
-void runDisplayError( void );
-
-
- 
 bool isLeapYear(uint16_t year);
-
+uint16_t dotyFebruary1( uint8_t month, uint8_t day);
+uint8_t wday(uint16_t year, uint8_t month, uint8_t day);
 
 void showTime (void);
 void showHour (void );
@@ -309,16 +305,17 @@ void advanceYear   (uint8_t delta);
 
 void showTime24H ( uint8_t hour, uint8_t minute );
 void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second );
-
 void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second);
+
 void showSeason16Seg ( uint16_t dayOfYear ); 
 void showSeasonLedRing ( uint16_t dayOfYear  );
 
+void runClockEngine( t_buttonEvents btEvent );
+void runDisplayEngine( void );
+void runDisplayError( void );
 
-uint8_t wday(uint16_t year, uint8_t month, uint8_t day);
 
-void adjustDOW ( t_ds3231records *t );
-bool rtcDataCheck (  t_ds3231records *t );
+
 //                   _            _      
 //    __ ___ _ _  __| |_ __ _ _ _| |_ ___
 //   / _/ _ \ ' \(_-<  _/ _` | ' \  _(_-<
@@ -1391,18 +1388,7 @@ void runClockEngine( t_buttonEvents btEvent ){
 	break;
 
     }
-    
-/*    
-    // check if time changes
-    if (timeChanged) {
-        timeChanged = false;
-        adjustDOW ( &rtc );
-        if ( !writeRtc ( &rtc ) )
-           return false; 
-    }
-
-    return true;
-*/    
+        
 }
 //
 
@@ -1578,11 +1564,7 @@ void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second){
     for (uint8_t p=0; p<m8 ; p++) {
         displ16SegBuffer |=  pgm_read_word(phase + p ); 
     }
-    
-
-
-   // displ16SegBuffer |= pgm_read_word( phase + m8 );// minutes (constant area optimization)
-    //displ16SegBuffer |= pgm_read_word( minute8 + m8 );// minutes    
+     
 }
 //
 
@@ -1619,16 +1601,8 @@ void runDisplayError( void ) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+//     __ _      _    
+//    / _(_)_ _ (_)___
+//   |  _| | ' \| (_-<
+//   |_| |_|_||_|_/__/
+//                    
