@@ -291,7 +291,7 @@ void runDisplayError( void );
 
  
 bool isLeapYear(uint16_t year);
-void showSeason ( uint16_t doy ); 
+
 
 void showTime (void);
 void showHour (void );
@@ -309,13 +309,16 @@ void advanceYear   (uint8_t delta);
 
 void showTime24H ( uint8_t hour, uint8_t minute );
 void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second );
-void showSeasonLedRing ( uint16_t dayOfYear );
+
 void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second);
+void showSeason16Seg ( uint16_t dayOfYear ); 
+void showSeasonLedRing ( uint16_t dayOfYear  );
 
-bool rtcDataCheck (  t_ds3231records *t );
+
 uint8_t wday(uint16_t year, uint8_t month, uint8_t day);
-void adjustDOW ( t_ds3231records *t );
 
+void adjustDOW ( t_ds3231records *t );
+bool rtcDataCheck (  t_ds3231records *t );
 //                   _            _      
 //    __ ___ _ _  __| |_ __ _ _ _| |_ ___
 //   / _/ _ \ ' \(_-<  _/ _` | ' \  _(_-<
@@ -332,6 +335,40 @@ const uint16_t PROGMEM unitsBCD[10] = {  _00_ ,  _01_,  _02_,  _03_,  _04_,  _05
 //const PROGMEM uint16_t minute8[8]   = { _A2, _B,  _C, _D1, _D2, _E,  _F, _A1 }; same as phase[]
 const uint16_t PROGMEM hour8[8]     = {  _I, _J, _G2,  _M,  _L, _K, _G1,  _H };
 
+
+const PROGMEM uint16_t dayThreshold24intervals [24] = {
+	 12,  30,  48, 58 ,  73,  89, 101, 120, 140, 150, 165, 181,
+	193, 212, 232, 242, 257, 273, 285, 304, 323, 333, 348, 364
+};
+//
+	
+
+const uint8_t PROGMEM seasonColors[24][3] = {  
+	{ 0xFF, 0x00, 0x00 } , // RED 
+	{ 0xE1, 0x00, 0x1E } , //	
+	{ 0xC0, 0x00, 0x3F } , // 	
+	{ 0xA2, 0x00, 0x5D } , // 	
+	{ 0x81, 0x00, 0x7E } , // 
+	{ 0x60, 0x00, 0x9F } , // 
+	{ 0x42, 0x00, 0xBD } , // 
+	{ 0x21, 0x00, 0xDE } , //  
+	{ 0x00, 0x00, 0xFF } , // BLUE 
+	{ 0x00, 0x1E, 0xE1 } , //  
+	{ 0x00, 0x3F, 0xC0 } , // 
+	{ 0x00, 0x60, 0x9F } , // 
+	{ 0x00, 0x7E, 0x81 } , // 
+	{ 0x00, 0x9F, 0x60 } , // 
+	{ 0x00, 0xC0, 0x3F } , // 
+	{ 0x00, 0xDE, 0x21 } , // 
+	{ 0x00, 0xFF, 0x00 } , // GREEN
+	{ 0x21, 0xDE, 0x00 } , // 
+	{ 0x3F, 0xC0, 0x00 } , //
+	{ 0x60, 0x9F, 0x00 } , //
+	{ 0x81, 0x7E, 0x00 } , //
+	{ 0x9F, 0x60, 0x00 } , // 
+	{ 0xC0, 0x3F, 0x00 } , // 
+	{ 0xE1, 0x1E, 0x00 } , // 
+};
 
 
 const PROGMEM uint16_t dayThreshold[72] = {
@@ -376,7 +413,7 @@ volatile bool readyToGo = false;
 volatile t_displayMode displayMode        = MD_SEASON_24HOUR;  // global
 volatile t_operatingStates operatingState = ST_SHOW_TIME; 
 
-uint8_t ledRingBrightness = 80;
+uint8_t ledRingBrightness = 32;
 
 bool timeChanged = false;
 
@@ -396,7 +433,8 @@ int main(void) {
   
    operatingState = ST_SHOW_TIME;
    timeChanged = false;
- 
+
+
   // main loop
     for (;;) {
         // wait for tick  
@@ -413,17 +451,6 @@ int main(void) {
 			}           
 
 		} else runDisplayError();
-    /*
-        while ( readRtc ( &rtc)  ) {
-            runClockEngine( buttonEvents () );
-            runDisplayEngine();
-
-            if (timeChanged) {    // TODO check for error during write to RTC
-				writeRtc ( &rtc ); 
-                timeChanged = false;
-				}
-        }
-    */   
 
     } // for (;;)    
 
@@ -1470,13 +1497,13 @@ void showTime       (void) {
    
     switch (displayMode) {
        case MD_SEASON_24HOUR: // 16 segments season, led ring 24 hour
-         showSeason ( dayOfYear ) ;
+         showSeason16Seg ( dayOfYear ) ;
          showTime24H ( hour, minute );
 
          break;	 
          
       case MD_SEASON_12HOUR: // 16 segments season, led ring 12 hour + minutes
-         showSeason ( dayOfYear ) ;
+         showSeason16Seg ( dayOfYear ) ;
          showTime12H ( hour, minute, second );
          break;	  
          
@@ -1489,11 +1516,18 @@ void showTime       (void) {
 }
 //
 
+
+
+// ******************************************************************************************************************
+//
+//   Display mode base functions
+//
+
 // show season on 16 segment display
-void showSeason ( uint16_t doy ) {
+void showSeason16Seg ( uint16_t dayOfYear ) { 
   uint8_t th = 71;  // count down to next threshold
   
-  while ( doy < pgm_read_word (dayThreshold + th ) ) {
+  while ( dayOfYear < pgm_read_word (dayThreshold + th ) ) {
     th--;
   }
   
@@ -1502,9 +1536,17 @@ void showSeason ( uint16_t doy ) {
 }
 //
 
-// ******************************************************************************************************************
-//
-//   Display mode alternatives
+void showSeasonLedRing ( uint16_t dayOfYear  ){
+	uint8_t th = 23;  // count down to next threshold
+  while ( dayOfYear < pgm_read_word (dayThreshold24intervals + th ) ) {
+    th--;
+  }
+    // set LED color according to season    
+	clearLeds ( &ledRing) ;	
+    ledRing.led[ th ].red    = ( pgm_read_byte( &(seasonColors[th][0])) * ledRingBrightness ) >> 8;
+    ledRing.led[ th ].green  = ( pgm_read_byte( &(seasonColors[th][1])) * ledRingBrightness ) >> 8;
+    ledRing.led[ th ].blue   = ( pgm_read_byte( &(seasonColors[th][2])) * ledRingBrightness ) >> 8;   	  	
+}
 //
 
 void showTime24H ( uint8_t hour, uint8_t minute ){
@@ -1524,11 +1566,7 @@ void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second ){
 }
 //
 
-void showSeasonLedRing ( uint16_t dayOfYear ){
-	clearLeds ( &ledRing) ;	
-	ledRing.led[ 6 ].green    = ledRingBrightness ;    
-}
-//
+
 
 // Show time on 16 segment display
 void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second){
