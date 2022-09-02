@@ -90,10 +90,10 @@
 
 // button stuff           
 #define bANALOG          5
-#define th_BUTTON_NONE 219  // voltage thresholds
-#define th_BUTTON_SET  168  // 8 bits, 0xff = 5V 
-#define th_BUTTON_MODE 138
-#define th_BUTTON_BOTH  61
+#define th_BUTTON_NONE 192  // voltage thresholds
+#define th_BUTTON_SET   64  // 8 bits, 0xff = 5V 
+//#define th_BUTTON_MODE   5  //
+
 
 #define th_SHORT_PRESS 5    // time thresholds
 #define th_LONG_PRESS 65    // in units of 10 ms
@@ -233,7 +233,8 @@ typedef enum {
 //   16seg / LED ring
   MD_SEASON_24HOUR, // default
   MD_SEASON_12HOUR,
-  MD_12HOUR_SEASON
+  MD_ULTRADIAN_SEASON,
+  MD_ULTRADIAN_NO_SEASON
 } t_displayMode;
 
 
@@ -303,9 +304,10 @@ void advanceDay   (uint8_t delta);
 void advanceMonth   (uint8_t delta);
 void advanceYear   (uint8_t delta);
 
-void showTime24H ( uint8_t hour, uint8_t minute );
-void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second );
-void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second);
+void showTime24HledRing ( uint8_t hour, uint8_t minute );
+void showTime12HledRing ( uint8_t hour, uint8_t minute, uint8_t second );
+void showTimeUltradian16seg (uint8_t hour, uint8_t minute );
+void showUltradianIntervalLedRing ( uint8_t minute, uint8_t second  );
 
 void showSeason16Seg ( uint16_t dayOfYear ); 
 void showSeasonLedRing ( uint16_t dayOfYear  );
@@ -813,12 +815,11 @@ t_buttonStates getButton (void) {
    ADCSRA |= (1<<ADIF);
    
    sample = ADCH;  
-   
+
    if (sample > th_BUTTON_NONE ) return BT_NONE;
      else if (sample > th_BUTTON_SET) return BT_SET;
-       else if (sample > th_BUTTON_MODE) return BT_MODE;
-          else if (sample > th_BUTTON_BOTH) return BT_BOTH;
-		    else return BT_UNKNOWN; 
+        else return BT_MODE;
+ 
 }
 //
 
@@ -1388,7 +1389,18 @@ void runClockEngine( t_buttonEvents btEvent ){
 	break;
 
     }
-        
+    
+/*    
+    // check if time changes
+    if (timeChanged) {
+        timeChanged = false;
+        adjustDOW ( &rtc );
+        if ( !writeRtc ( &rtc ) )
+           return false; 
+    }
+
+    return true;
+*/    
 }
 //
 
@@ -1399,9 +1411,11 @@ void advanceDisplayMode (void) {
          displayMode = MD_SEASON_12HOUR;
          break;	 
       case MD_SEASON_12HOUR:
-         displayMode = MD_12HOUR_SEASON;
+         displayMode = MD_ULTRADIAN_SEASON;
          break;	  
-      case MD_12HOUR_SEASON:
+      case MD_ULTRADIAN_SEASON:
+         displayMode = MD_ULTRADIAN_NO_SEASON;
+         break;
       default:
          displayMode = MD_SEASON_24HOUR;
          break; 
@@ -1484,20 +1498,27 @@ void showTime       (void) {
     switch (displayMode) {
        case MD_SEASON_24HOUR: // 16 segments season, led ring 24 hour
          showSeason16Seg ( dayOfYear ) ;
-         showTime24H ( hour, minute );
+         showTime24HledRing ( hour, minute );
 
          break;	 
          
       case MD_SEASON_12HOUR: // 16 segments season, led ring 12 hour + minutes
          showSeason16Seg ( dayOfYear ) ;
-         showTime12H ( hour, minute, second );
+         showTime12HledRing ( hour, minute, second );
          break;	  
          
-      case MD_12HOUR_SEASON: // 16 segments clock 12hour, led ring season
+      case MD_ULTRADIAN_SEASON: // 16 segments clock ultradian, led ring season
+         showSeasonLedRing ( dayOfYear );
+         showTimeUltradian16seg (hour, minute );	 
+         break;
+
+      case MD_ULTRADIAN_NO_SEASON: // 16 segments clock ultradian, led ring season
       default:
          showSeasonLedRing ( dayOfYear );
-         showTime16Seg (hour, minute, second);	 
-         break; 		
+         showUltradianIntervalLedRing ( minute, second );	 
+         break; 
+
+         	
     }
 }
 //
@@ -1507,6 +1528,10 @@ void showTime       (void) {
 // ******************************************************************************************************************
 //
 //   Display mode base functions
+//
+
+//
+// Display on 16 segment 
 //
 
 // show season on 16 segment display
@@ -1522,6 +1547,28 @@ void showSeason16Seg ( uint16_t dayOfYear ) {
 }
 //
 
+// Show time on 16 segment display (ultradian cycle)
+void showTimeUltradian16seg (uint8_t hour, uint8_t minute ){
+	uint8_t k;
+	
+	uint8_t inner = ( (hour * 60 + minute) / 90 ) % 8;
+    uint8_t outer = ( (hour * 60 + minute) / 10 ) % 9;
+	
+	displ16SegBuffer  = pgm_read_word( &(hour8[inner]) );// 90 minute interval
+	
+	while ( outer > 0) { // add 10 minute intervals passed
+         k = (outer-1 + inner) % 8;
+		 displ16SegBuffer |= pgm_read_word( &(phase[k]) );
+        outer--;
+      }
+   
+}
+
+
+//
+// Display on LED Ring
+//
+// show Season using color table
 void showSeasonLedRing ( uint16_t dayOfYear  ){
 	uint8_t th = 23;  // count down to next threshold
   while ( dayOfYear < pgm_read_word (dayThreshold24intervals + th ) ) {
@@ -1535,14 +1582,17 @@ void showSeasonLedRing ( uint16_t dayOfYear  ){
 }
 //
 
-void showTime24H ( uint8_t hour, uint8_t minute ){
+//displays time using single red LED on ring considering 24 hours for full circle
+void showTime24HledRing ( uint8_t hour, uint8_t minute ){
 	clearLeds ( &ledRing) ;
 	ledRing.led[hour].red   = ledRingBrightness ;	
   //  showLeds    ( &ledRing );
 }
 //
 
-void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second ){
+//displays time using red LED on ring for hours, considering 12 hours for full circle
+// shows every 2:30 intervals using blue LED to complete 1 hour in a full circle
+void showTime12HledRing ( uint8_t hour, uint8_t minute, uint8_t second ){
 	uint8_t ih12 = (( hour   * 60 + minute ) / 30  )  % 12;
 	uint8_t i2m5 = (( minute * 60 + second ) / 150 )  ;
 	clearLeds ( &ledRing) ;
@@ -1552,20 +1602,24 @@ void showTime12H ( uint8_t hour, uint8_t minute, uint8_t second ){
 }
 //
 
+// displays 10 minute ultradian intervals using red LED, considering 24 intervals (of 25 seconds each)
+void showUltradianIntervalLedRing ( uint8_t minute, uint8_t second  ){
 
+    uint8_t tenth = ( (minute * 60 + second) / 25 ) % 24; 
 
-// Show time on 16 segment display
-void showTime16Seg (uint8_t hour, uint8_t minute, uint8_t second){
-    uint16_t h8 = ((  hour * 60 + minute ) / 90 ) %8;	
-    uint16_t m8 = ( minute * 60 + second)  / 450; 
-    displ16SegBuffer  = pgm_read_word( hour8 + h8 );// hour
-    
-    
-    for (uint8_t p=0; p<m8 ; p++) {
-        displ16SegBuffer |=  pgm_read_word(phase + p ); 
-    }
-     
+    // 	if (tenth == 0)   // uncomment this line for fullfill the ring
+ 	clearLeds ( &ledRing) ;
+ 	
+	ledRing.led[tenth].red   = ledRingBrightness ;
+	showLeds    ( &ledRing );
 }
+//
+
+
+
+
+
+
 //
 
 
