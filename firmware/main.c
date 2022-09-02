@@ -1508,13 +1508,13 @@ void showTime       (void) {
          break;	  
          
       case MD_ULTRADIAN_SEASON: // 16 segments clock ultradian, led ring season
+         showTimeUltradian16seg (hour, minute );	      
          showSeasonLedRing ( dayOfYear );
-         showTimeUltradian16seg (hour, minute );	 
          break;
 
       case MD_ULTRADIAN_NO_SEASON: // 16 segments clock ultradian, led ring season
       default:
-         showSeasonLedRing ( dayOfYear );
+         showTimeUltradian16seg (hour, minute );
          showUltradianIntervalLedRing ( minute, second );	 
          break; 
 
