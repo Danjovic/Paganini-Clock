@@ -1590,15 +1590,48 @@ void showTime24HledRing ( uint8_t hour, uint8_t minute ){
 }
 //
 
-//displays time using red LED on ring for hours, considering 12 hours for full circle
-// shows every 2:30 intervals using blue LED to complete 1 hour in a full circle
+//displays time using yellow considering 12 hours for full circle
+// from 06:00 to 17:59 hour is indicated by yellow led (sun is yellow)
+// from 18:00 to 05:59 hour is indicated by blue led (night hues are blueish)
+// every 2:30 interval is displayed using blinking red. 1 hour takes a full cycle
+// blinking rate is 1Hz
+// intersections are green for day time (AM) and magenta for night time (PM) 
+// 
 void showTime12HledRing ( uint8_t hour, uint8_t minute, uint8_t second ){
-	uint8_t ih12 = (( hour   * 60 + minute ) / 30  )  % 12;
+	static uint8_t blinkCount=0;
+	static uint8_t lastSecond = 0;
+	uint8_t ih12 = (( hour   * 60 + minute ) / 30  )  % 24;
 	uint8_t i2m5 = (( minute * 60 + second ) / 150 )  ;
 	clearLeds ( &ledRing) ;
-	ledRing.led[ ih12 ].red    = ledRingBrightness ;
-	ledRing.led[ i2m5 ].blue   = ledRingBrightness ;
-   // showLeds    ( &ledRing );	
+	
+	// from 06:00 to 17:59 -> yellow
+    if ( ( hour >= 6)  && (hour < 18 ))  {
+        ledRing.led[ ih12 ].red    = ledRingBrightness ;		
+        ledRing.led[ ih12 ].green  = ledRingBrightness ;			
+	} else // otherwise is blue
+	
+		   ledRing.led[ ih12 ].blue    = ledRingBrightness ;	
+	
+    // process blink counter (todo: make blink global)	
+	if (blinkCount < 100) blinkCount++;  // saturate at 1s (10ms x 100)
+   	if (lastSecond != second) {
+		blinkCount = 0 ; // reset counter
+		lastSecond = second;
+	}
+	if (blinkCount < 50) {  // lit during first half of a new second 
+		// test for overlaps
+		if (ih12 == i2m5 ) {  // overlap
+		    clearLeds ( &ledRing) ;	
+            if ( ( hour >= 6)  && (hour < 18 ))  {  // day overlap, green
+                 ledRing.led[ ih12 ].green  = ledRingBrightness ;			
+            } else {// otherwise is magenta  (night overlap)
+           	   ledRing.led[ ih12 ].blue  = ledRingBrightness ;	
+		       ledRing.led[ ih12 ].red   = ledRingBrightness ;				   
+            }		
+	   } else // no overlap just lit red
+		   ledRing.led[ i2m5 ].red   = ledRingBrightness ;		
+	}
+
 }
 //
 
